@@ -1,0 +1,87 @@
+---
+title: "Predict"
+output: pdf_document
+date: "2023-12-22"
+---
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(ggplot2)
+
+
+df <- data.frame(x=1:5, A=9:13)
+
+df2 <- data.frame(B=7:11)
+
+df3 <- cbind(df, df2)
+
+ggplot(df3, aes(x=x)) + 
+  geom_line(aes(y = A), color = "darkred") + 
+  geom_line(aes(y = B), color="steelblue", linetype="twodash")
+
+```
+
+Load the dataset and libs
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(ggplot2)
+library(dplyr)
+library(neuralnet)
+
+training_set <- read_csv('training_set.csv') %>%
+  select(-...1)
+testing_set <- read_csv('testing_set.csv') %>%
+  select(-...1)
+
+#dataset <- dataset[rev(row.names(dataset)), ]
+
+```
+Define normalization functions
+```{r}
+norm = function(x){
+  x0 = min(x)
+  x1 = max(x)
+  return((x - x0)/(x1 - x0))
+}
+
+denorm = function(x, y){
+  x0 = min(x)
+  x1 = max(x)
+  return(y*(x1 - x0) + x0)
+}
+```
+
+Run the neural network
+```{r}
+ntraing_set <- norm(training_set)
+ntesting_set <- norm(testing_set)
+
+predictions <- neuralnet(Bitcoin ~ ., data=ntraing_set, hidden=8)
+plot(predictions)
+```
+Assess predictions and calculations
+```{r}
+predA <- compute(predictions, ntesting_set)
+predA <- denorm(testing_set$Bitcoin, predA$net.result)
+
+```
+Plot the data
+```{r}
+df <- data.frame(x=1:73, Actual=testing_set$Bitcoin)
+
+df2 <- data.frame(Predicted=predA)
+
+df3 <- cbind(df, df2)
+
+ggplot(df3, aes(x=x)) + 
+  geom_line(aes(y = Actual), color = "darkred") + 
+  geom_line(aes(y = Predicted), color="steelblue")
+```
+```{r}
+
+```
+```{r}
+
+```
